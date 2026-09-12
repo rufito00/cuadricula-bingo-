@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bingo aleatorio</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  background:#eee;
+  font-family:Arial,sans-serif;
+  text-align:center;
+  padding:25px 12px;
+}
+h1{font-size:42px;margin:10px 0 25px}
+#leyenda{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin-bottom:20px;
+}
+.color{
+  width:36px;height:36px;border-radius:50%;
+  border:3px solid #fff;
+  box-shadow:0 2px 5px #888;
+  cursor:pointer;
+}
+.color.seleccionado{border-color:#111;transform:scale(1.12)}
+
+#tablero{
+  width:min(94vw,600px);
+  margin:auto;
+  padding:5px;
+  background:#111;
+  border-radius:12px;
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:5px;
+}
+.casilla{
+  aspect-ratio:1;
+  background:#fff;
+  border:0;
+  border-radius:4px;
+  cursor:pointer;
+  transition:transform .08s;
+}
+.casilla:active{transform:scale(.94)}
+
+#nuevo{
+  margin-top:22px;
+  padding:13px 22px;
+  border:0;
+  border-radius:9px;
+  background:white;
+  font-size:17px;
+  font-weight:bold;
+  cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<h1>🎱 Bingo</h1>
+
+<div id="leyenda">
+  <button class="color seleccionado" style="background:#ff3b30" data-color="#ff3b30"></button>
+  <button class="color" style="background:#ff9500" data-color="#ff9500"></button>
+  <button class="color" style="background:#ffd60a" data-color="#ffd60a"></button>
+  <button class="color" style="background:#34c759" data-color="#34c759"></button>
+  <button class="color" style="background:#007aff" data-color="#007aff"></button>
+  <button class="color" style="background:#af52de" data-color="#af52de"></button>
+</div>
+
+<div id="tablero"></div>
+
+<button id="nuevo">🔀 Nuevo bingo aleatorio</button>
+
+<script>
+const colores=[
+  "#ff3b30","#ff9500","#ffd60a",
+  "#34c759","#007aff","#af52de"
+];
+
+let colorSeleccionado=colores[0];
+
+const tablero=document.getElementById("tablero");
+
+function mezclar(array){
+  const copia=[...array];
+  for(let i=copia.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [copia[i],copia[j]]=[copia[j],copia[i]];
+  }
+  return copia;
+}
+
+function crearBingo(){
+  tablero.innerHTML="";
+
+  // Cada vez que se abre/recarga la página se genera una combinación nueva.
+  const coloresAleatorios=mezclar(
+    Array.from({length:25},()=>colores[Math.floor(Math.random()*colores.length)])
+  );
+
+  coloresAleatorios.forEach(color=>{
+    const casilla=document.createElement("button");
+    casilla.className="casilla";
+    casilla.style.backgroundColor=color;
+
+    casilla.onclick=()=>{
+      // Al pulsar una casilla, se cambia al color seleccionado.
+      casilla.style.backgroundColor=colorSeleccionado;
+    };
+
+    tablero.appendChild(casilla);
+  });
+}
+
+document.querySelectorAll(".color").forEach(boton=>{
+  boton.onclick=()=>{
+    colorSeleccionado=boton.dataset.color;
+    document.querySelectorAll(".color").forEach(b=>b.classList.remove("seleccionado"));
+    boton.classList.add("seleccionado");
+  };
+});
+
+document.getElementById("nuevo").onclick=crearBingo;
+
+crearBingo();
+</script>
+
+</body>
+</html>
