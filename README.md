@@ -1,1 +1,0 @@
-# cuadricula-bingo-
