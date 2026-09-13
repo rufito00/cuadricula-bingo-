@@ -2,24 +2,30 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Bingo</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#eee;font-family:Arial,sans-serif;text-align:center;padding:20px 10px}
 h1{margin:5px 0 20px;font-size:40px}
 #colores{display:flex;justify-content:center;gap:10px;margin-bottom:20px}
-.color{width:42px;height:42px;border-radius:50%;border:4px solid white;box-shadow:0 2px 5px #777;cursor:pointer}
+.color{width:42px;height:42px;border-radius:50%;border:4px solid #fff;box-shadow:0 2px 5px #777;cursor:pointer}
 .color.sel{border-color:#111}
 #tablero{width:min(94vw,600px);margin:auto;padding:5px;background:#111;border-radius:10px;display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
 .casilla{position:relative;width:100%;aspect-ratio:1;border:0;border-radius:4px;cursor:pointer;overflow:hidden}
-.casilla.tachada:before,.casilla.tachada:after{
-content:"";position:absolute;width:110%;height:8px;background:#111;
-left:-5%;top:50%;margin-top:-4px;border-radius:5px;z-index:2;pointer-events:none
-}
+.casilla.tachada:before,.casilla.tachada:after{content:"";position:absolute;width:110%;height:8px;background:#111;left:-5%;top:50%;margin-top:-4px;border-radius:5px;z-index:2;pointer-events:none}
 .casilla.tachada:before{transform:rotate(45deg)}
 .casilla.tachada:after{transform:rotate(-45deg)}
-#nuevo{margin-top:20px;padding:12px 20px;border:0;border-radius:8px;font-size:17px;font-weight:bold}
+#nuevo,#borrarPizarra{margin-top:20px;padding:12px 20px;border:0;border-radius:8px;font-size:17px;font-weight:bold}
+#confirmacion{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:10}
+.oculto{display:none!important}
+.modal{background:white;border-radius:16px;padding:25px;width:min(90vw,380px);box-shadow:0 10px 35px #333}
+.modal h2{margin-top:0}.modal button{padding:11px 16px;border:0;border-radius:8px;margin:5px;font-weight:bold}
+#confirmar{background:#34c759;color:white}#cancelar{background:#ddd}
+#pizarra{width:min(94vw,600px);margin:30px auto 0;background:white;padding:12px;border-radius:12px}
+#pizarra h2{margin:5px 0 10px}
+#borrarPizarra{margin-top:0;background:#ddd}
+#canvas{display:block;width:100%;height:300px;background:white;border:2px solid #222;border-radius:8px;touch-action:none}
 </style>
 </head>
 <body>
@@ -31,47 +37,104 @@ left:-5%;top:50%;margin-top:-4px;border-radius:5px;z-index:2;pointer-events:none
 <button class="color" style="background:#34C759" data-c="#34C759"></button>
 <button class="color" style="background:#007AFF" data-c="#007AFF"></button>
 <button class="color" style="background:#AF52DE" data-c="#AF52DE"></button>
-<button class="color" style="background:#FF2D55" data-c="#FF2D55"></button>
+<button class="color" style="background:#FF1493" data-c="#FF1493"></button>
 </div>
 
 <div id="tablero"></div>
-
 <button id="nuevo">🔀 Nuevo bingo</button>
 
+<div id="confirmacion" class="oculto">
+<div class="modal">
+<h2>⚠️ ¿Nuevo bingo?</h2>
+<p>Se perderá el bingo actual y se generará uno nuevo.</p>
+<button id="cancelar">Cancelar</button>
+<button id="confirmar">Sí, continuar</button>
+</div>
+</div>
+
+<section id="pizarra">
+<h2>📝 Pizarra</h2>
+<canvas id="canvas"></canvas>
+<button id="borrarPizarra">🗑️ Borrar pizarra</button>
+</section>
+
 <script>
-const colores=["#FFD60A","#34C759","#007AFF","#AF52DE","#FF2D55"];
+const colores=["#FFD60A","#34C759","#007AFF","#AF52DE","#FF1493"];
 let elegido=colores[0];
 
-document.querySelectorAll(".color").forEach(boton=>{
-  boton.addEventListener("click",function(){
-    elegido=this.dataset.c;
-    document.querySelectorAll(".color").forEach(b=>b.classList.remove("sel"));
-    this.classList.add("sel");
-  });
+document.querySelectorAll(".color").forEach(b=>{
+ b.onclick=()=>{
+  elegido=b.dataset.c;
+  document.querySelectorAll(".color").forEach(x=>x.classList.remove("sel"));
+  b.classList.add("sel");
+ };
 });
 
 function nuevoBingo(){
-  const tablero=document.getElementById("tablero");
-  tablero.innerHTML="";
-
-  for(let i=0;i<25;i++){
-    const casilla=document.createElement("button");
-    casilla.className="casilla";
-
-    const color=colores[Math.floor(Math.random()*colores.length)];
-    casilla.style.backgroundColor=color;
-
-    casilla.addEventListener("click",function(){
-      this.classList.toggle("tachada");
-    });
-
-    tablero.appendChild(casilla);
-  }
+ const tablero=document.getElementById("tablero");
+ tablero.innerHTML="";
+ for(let i=0;i<25;i++){
+  const c=document.createElement("button");
+  c.className="casilla";
+  c.style.backgroundColor=colores[Math.floor(Math.random()*colores.length)];
+  c.onclick=()=>c.classList.toggle("tachada");
+  tablero.appendChild(c);
+ }
 }
 
-document.getElementById("nuevo").addEventListener("click",nuevoBingo);
+const modal=document.getElementById("confirmacion");
+document.getElementById("nuevo").onclick=()=>modal.classList.remove("oculto");
+document.getElementById("cancelar").onclick=()=>modal.classList.add("oculto");
+document.getElementById("confirmar").onclick=()=>{
+ nuevoBingo();
+ modal.classList.add("oculto");
+};
+
+const canvas=document.getElementById("canvas");
+const ctx=canvas.getContext("2d");
+
+function ajustarCanvas(){
+ const r=canvas.getBoundingClientRect();
+ const d=window.devicePixelRatio||1;
+ canvas.width=r.width*d;
+ canvas.height=r.height*d;
+ ctx.setTransform(d,0,0,d,0,0);
+ ctx.lineWidth=4;
+ ctx.lineCap="round";
+ ctx.lineJoin="round";
+}
+ajustarCanvas();
+window.addEventListener("resize",ajustarCanvas);
+
+let dibujando=false;
+function posicion(e){
+ const r=canvas.getBoundingClientRect();
+ return {x:e.clientX-r.left,y:e.clientY-r.top};
+}
+canvas.addEventListener("pointerdown",e=>{
+ dibujando=true;
+ canvas.setPointerCapture(e.pointerId);
+ const p=posicion(e);
+ ctx.beginPath();
+ ctx.moveTo(p.x,p.y);
+});
+canvas.addEventListener("pointermove",e=>{
+ if(!dibujando)return;
+ const p=posicion(e);
+ ctx.lineTo(p.x,p.y);
+ ctx.stroke();
+});
+canvas.addEventListener("pointerup",()=>{
+ dibujando=false;
+ ctx.closePath();
+});
+canvas.addEventListener("pointercancel",()=>dibujando=false);
+
+document.getElementById("borrarPizarra").onclick=()=>{
+ ctx.clearRect(0,0,canvas.width,canvas.height);
+};
+
 nuevoBingo();
 </script>
-
 </body>
 </html>
